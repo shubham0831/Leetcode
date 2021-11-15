@@ -1,25 +1,53 @@
 package Leetcode;
 
-import java.util.Arrays;
+import java.util.PriorityQueue;
+import java.util.TreeMap;
 
 class HighFive {
-    public int deleteAndEarn(int[] nums) {
-        int[] sum = new int[10005];
-        Arrays.fill(sum,0);
-        for (int i = 0; i < nums.length; ++i){
-            sum[nums[i]] += nums[i];
+    public int[][] highFive(int[][] items) {
+        TreeMap <Integer, PriorityQueue<Integer>> avgMap = new TreeMap<>();
+        
+        for (int[] pairs : items){
+            int id = pairs[0];
+            int score = pairs[1];
+            
+            if (!avgMap.containsKey(id)){
+                PriorityQueue<Integer> pq = new PriorityQueue<>(5);
+                pq.offer(score);
+                avgMap.put(id, pq);
+            } else {
+                PriorityQueue<Integer> pq = avgMap.get(id);
+                if (pq.size() != 5){
+                    pq.offer(score);
+                    avgMap.put(id, pq);
+                } else if (pq.size() == 5) {
+                    int min = pq.peek();
+                    if (min < score){
+                        pq.poll();
+                        pq.offer(score);
+                    }
+                    avgMap.put(id, pq);
+                }
+            }
         }
         
-        int[] dp = new int[10005];
+        int[][] sol = new int[avgMap.size()][2];
+        int pointer = 0;    
         
-        dp[1] = sum[1];
-        dp[2] = Math.max(sum[1], sum[2]);
-        
-        for (int i = 3; i < 10005; ++i){
-            dp[i] = Math.max(dp[i-1], sum[i] + dp[i-2]);
+        for (int id : avgMap.keySet()){
+            sol[pointer][0] = id;
+            PriorityQueue<Integer> pq = avgMap.get(id);
+            int total = 0;
+            int size = pq.size();
+            while (!pq.isEmpty()){
+                total += pq.poll();
+            }
+            total = total/size;
+            
+            sol[pointer][1] = total;
+            pointer++;
         }
         
-        int maxPoints = Math.max(dp[sum.length-1], dp[sum.length-2]);
-        return maxPoints;
+        return sol;
     }
 }
